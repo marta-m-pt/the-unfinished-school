@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Unfinished School — Folder</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Public Sans is the closest free fallback for Lazzer; drop the real Lazzer files
+     into /fonts/ and the @font-face block below will pick them up automatically. -->
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     Lazzer-TRIAL — drop your font files into /fonts/ and they
+     load automatically. Three weights expected:
+        Lazzer-TRIAL-Medium.{woff2,woff,otf}
+        Lazzer-TRIAL-SemiBold.{woff2,woff,otf}
+        Lazzer-TRIAL-MediumItalic.{woff2,woff,otf}
+     ========================================================= */
+  @font-face {
+    font-family: "Lazzer";
+    src: url("fonts/Lazzer-TRIAL-Medium.woff2") format("woff2"),
+         url("fonts/Lazzer-TRIAL-Medium.woff")  format("woff"),
+         url("fonts/Lazzer-TRIAL-Medium.otf")   format("opentype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Lazzer";
+    src: url("fonts/Lazzer-TRIAL-Semibold.woff2") format("woff2"),
+         url("fonts/Lazzer-TRIAL-Semibold.woff")  format("woff"),
+         url("fonts/Lazzer-TRIAL-Semibold.otf")   format("opentype"),
+         url("fonts/Lazzer-TRIAL-SemiBold.woff2") format("woff2"),
+         url("fonts/Lazzer-TRIAL-SemiBold.woff")  format("woff"),
+         url("fonts/Lazzer-TRIAL-SemiBold.otf")   format("opentype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Lazzer";
+    src: url("fonts/Lazzer-TRIAL-MediumItalic.woff2") format("woff2"),
+         url("fonts/Lazzer-TRIAL-MediumItalic.woff")  format("woff"),
+         url("fonts/Lazzer-TRIAL-MediumItalic.otf")   format("opentype");
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+  }
+
+  :root {
+    --cream:  #f3eed8;
+    --dark:   #2e2e30;
+    --bright: #1ea5e8;   /* cyan-blue text on dark */
+    --deep:   #1d3eff;   /* electric blue text on cream */
+    --rule:   #fffef3;   /* hairline divider between tabs */
+    --font:   "Lazzer", "Public Sans", -apple-system, system-ui, sans-serif;
+
+    /* Set by JS to the currently-open tab's mood. Left-side spines inherit these. */
+    --open-bg: var(--cream);
+    --open-fg: var(--deep);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font);
+    font-weight: 500;
+    color: var(--deep);
+    background: var(--cream);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ---------- folder shell ---------- */
+  .folder {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    background: var(--cream);
+  }
+
+  /* ---------- binder holes ---------- */
+  .holes {
+    flex: 0 0 56px;
+    background: var(--cream);
+    border-right: 1px solid var(--deep);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 56px 0;
+    align-items: center;
+    z-index: 5;
+  }
+  .holes .hole {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--deep);
+    flex-shrink: 0;
+    transition: background 400ms ease;
+  }
+  /* when an adjacent dark tab is open, holes invert */
+  .folder[data-mood="dark"] .holes { background: var(--dark); border-right-color: var(--rule); }
+  .folder[data-mood="dark"] .hole  { background: var(--cream); }
+
+  /* ---------- tabs ---------- */
+  .tab {
+    display: flex;
+    flex: 0 0 64px;          /* closed tabs are spine-width */
+    min-width: 0;
+    overflow: hidden;
+  }
+  .tab.is-open { flex: 1 1 0; }
+
+  .spine {
+    flex: 0 0 64px;
+    width: 64px;
+    border: 0;
+    border-right: 1px solid var(--rule);
+    background: var(--cream);
+    color: var(--deep);
+    padding: 28px 0 24px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 500;
+    transition: background 500ms ease, color 500ms ease;
+    position: relative;
+  }
+  .spine:focus-visible { outline: 2px solid currentColor; outline-offset: -6px; }
+
+  .spine .date,
+  .spine .name {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .spine .date {
+    font-size: 17px;
+    font-style: italic;
+    font-weight: 500;
+  }
+  .spine .name {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+  }
+
+  /* Tabs to the left of (and including) the open tab adopt the open mood */
+  .tab[data-side="left"] .spine,
+  .tab.is-open .spine {
+    background: var(--open-bg);
+    color: var(--open-fg);
+  }
+  /* Right-side spines stay cream + deep blue */
+  .tab[data-side="right"] .spine {
+    background: var(--cream);
+    color: var(--deep);
+  }
+
+  /* ---------- panel (the open sheet body) ---------- */
+  .panel {
+    flex: 0 0 0;
+    min-width: 0;
+    background: var(--cream);
+    color: var(--deep);
+    overflow: hidden;
+    position: relative;
+  }
+  .tab.is-open .panel { flex: 1 1 0; }
+
+  /* per-mood panel colors */
+  .tab[data-mood="dark"]  .panel { background: var(--dark);  color: var(--bright); }
+  .tab[data-mood="cream"] .panel { background: var(--cream); color: var(--deep);   }
+
+  .panel-inner {
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 64px 96px;
+    scrollbar-width: thin;
+    scrollbar-color: currentColor transparent;
+  }
+  .panel-inner::-webkit-scrollbar { width: 6px; }
+  .panel-inner::-webkit-scrollbar-thumb { background: currentColor; opacity: 0.3; }
+
+  /* ============================================================
+     PANEL · FOLDER (landing)
+     ============================================================ */
+  .panel-folder .panel-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 80px 96px;
+  }
+  .folder-head {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    max-width: 1100px;
+  }
+  .folder-head h1 {
+    font-size: clamp(60px, 7.2vw, 132px);
+    line-height: 0.92;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+  .folder-head .lede {
+    font-size: clamp(20px, 1.6vw, 30px);
+    font-style: italic;
+    font-weight: 500;
+    line-height: 1.25;
+    max-width: 700px;
+    margin: 0;
+  }
+  .folder-meta {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 24px;
+    align-items: start;
+    border-top: 1px solid currentColor;
+    padding-top: 28px;
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 900px;
+  }
+  .folder-meta dt {
+    font-style: italic;
+    font-weight: 500;
+    opacity: 0.7;
+  }
+  .folder-meta dd { margin: 0; }
+  .folder-meta dd + dt { margin-top: 6px; }
+
+  .folder-index {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid currentColor;
+  }
+  .folder-index .head {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr 60px;
+    gap: 24px;
+    padding: 14px 0;
+    font-size: 13px;
+    font-style: italic;
+    opacity: 0.7;
+    border-bottom: 1px solid currentColor;
+  }
+  .folder-index .row {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr 60px;
+    gap: 24px;
+    padding: 22px 0;
+    border-bottom: 1px solid currentColor;
+    font-size: 22px;
+    line-height: 1.1;
+    cursor: pointer;
+    text-align: left;
+    background: transparent;
+    border-left: 0; border-right: 0; border-top: 0;
+    color: inherit;
+    font-family: inherit;
+    font-weight: 500;
+    transition: padding 300ms ease, color 300ms ease;
+  }
+  .folder-index .row .d { font-style: italic; font-size: 18px; align-self: center; }
+  .folder-index .row .n { font-weight: 600; letter-spacing: 0.04em; }
+  .folder-index .row .t { font-style: italic; align-self: center; }
+  .folder-index .row .arrow {
+    align-self: center;
+    justify-self: end;
+    font-size: 22px;
+    line-height: 1;
+    transition: transform 300ms ease;
+  }
+  .folder-index .row:hover { padding-left: 12px; }
+  .folder-index .row:hover .arrow { transform: translateX(10px); }
+  .folder-index .row:last-child { border-bottom: 1px solid currentColor; }
+
+  .folder-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    margin-top: auto;
+  }
+  .folder-foot .colophon {
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.5;
+    max-width: 400px;
+    opacity: 0.7;
+  }
+  .folder-foot .pull-tab {
+    font-size: 14px;
+    font-style: italic;
+    text-align: right;
+    line-height: 1.4;
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+  .folder-foot .pull-tab strong { font-weight: 600; font-style: normal; letter-spacing: 0.04em; }
+
+  /* ============================================================
+     PANEL · SCHOOL (big caps essay)
+     ============================================================ */
+  .panel-school .panel-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(48px, 6vh, 80px) clamp(40px, 4vw, 80px);
+    overflow-y: auto;
+  }
+  .school-text {
+    font-size: clamp(28px, 3.4vw, 68px);
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    text-transform: uppercase;
+    text-align: center;
+    text-wrap: pretty;
+    max-width: 1600px;
+    margin: 0;
+  }
+  .school-text em { font-style: italic; font-weight: 500; }
+  .school-text .accent { color: var(--rule); }
+
+  /* ============================================================
+     PANEL · RULES (titled rules)
+     ============================================================ */
+  .panel-rules .panel-inner {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .rules-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .rule {
+    flex: 1 1 0;
+    min-height: 360px;
+    padding: 56px clamp(40px, 6vw, 120px) 48px;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    border-bottom: 1.5px solid currentColor;
+    position: relative;
+  }
+  .rule:last-child { border-bottom: 0; }
+  .rule-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    text-align: center;
+    text-wrap: balance;
+  }
+  .rule h2 {
+    font-size: clamp(36px, 4.4vw, 80px);
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    text-transform: uppercase;
+    margin: 0;
+    max-width: 1300px;
+  }
+  .rule .body {
+    font-size: clamp(15px, 1.2vw, 22px);
+    font-weight: 500;
+    line-height: 1.35;
+    max-width: 800px;
+    margin: 0;
+  }
+  .rule-label {
+    align-self: end;
+    justify-self: start;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-top: 24px;
+    white-space: nowrap;
+  }
+
+  /* ============================================================
+     PANEL · MAP (CSS-grid floor plan)
+     ============================================================ */
+  .panel-map .panel-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px clamp(40px, 5vw, 96px);
+  }
+  .floorplan {
+    width: 100%;
+    max-width: 1500px;
+    aspect-ratio: 16 / 9;
+    display: grid;
+    grid-template-columns: 1.05fr 0.45fr 0.85fr 1.05fr;
+    grid-template-rows: 0.5fr 0.95fr 0.95fr;
+    gap: 0;
+    position: relative;
+    font-size: clamp(17px, 1.4vw, 26px);
+    line-height: 1.1;
+  }
+  .room {
+    border: 1.5px solid currentColor;
+    padding: 22px 26px;
+    display: flex;
+    align-items: flex-start;
+    color: inherit;
+  }
+  .room .label {
+    max-width: 100%;
+  }
+  .room--seasonal {
+    grid-column: 2 / -1;
+    grid-row: 1 / 2;
+    border-style: dashed;
+    opacity: 0.7;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+  }
+  .room--seasonal .label { font-style: italic; opacity: 1; }
+  .room--seasonal .sub  { display: block; opacity: 0.7; font-style: italic; font-size: 0.7em; margin-top: 4px; }
+
+  .room--stuck   { grid-column: 1 / 2; grid-row: 2 / 4; align-items: flex-end; }
+  .room--decided { grid-column: 2 / 4; grid-row: 2 / 3; align-items: flex-end; }
+  .room--wrong   { grid-column: 4 / 5; grid-row: 2 / 3; align-items: flex-end; }
+  .room--corridor{
+    grid-column: 2 / 3; grid-row: 3 / 4;
+    align-items: stretch; justify-content: center;
+    padding: 18px 8px;
+  }
+  .room--corridor .label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 0.85em;
+    line-height: 1.05;
+    align-self: center;
+    text-align: center;
+  }
+  .room--crossed { grid-column: 3 / 5; grid-row: 3 / 4; align-items: flex-end; justify-content: flex-end; }
+  .room--crossed .label { text-align: right; }
+
+  /* threshold annotation */
+  .threshold-mark {
+    position: absolute;
+    left: calc((1.05fr + 0.45fr) / (1.05fr + 0.45fr + 0.85fr + 1.05fr) * 100% + 12px);
+    /* simpler: just pin near the middle-top of the lower-middle cell */
+    left: 32%;
+    top: 56%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(14px, 1vw, 18px);
+    font-style: italic;
+    pointer-events: none;
+  }
+  .threshold-mark::before {
+    content: "";
+    display: block;
+    width: 64px;
+    height: 1.5px;
+    background: currentColor;
+  }
+
+  /* the broken/dashed bottom wall under corridor of shared mistakes */
+  .room--corridor { border-bottom-style: dashed; }
+
+  /* ============================================================
+     small responsive — narrow viewport: stack tabs into a column
+     ============================================================ */
+  @media (max-width: 720px) {
+    .panel-inner { padding: 40px 28px; }
+    .spine { flex: 0 0 48px; width: 48px; padding: 20px 0 16px; }
+    .spine .date { font-size: 13px; }
+    .spine .name { font-size: 16px; }
+    .holes { flex: 0 0 38px; padding: 32px 0; }
+    .folder-meta { grid-template-columns: 96px 1fr; gap: 12px; font-size: 13px; }
+    .folder-index .head, .folder-index .row { grid-template-columns: 100px 1fr 1fr 24px; gap: 12px; }
+    .folder-index .row { font-size: 16px; padding: 16px 0; }
+    .folder-index .row .d { font-size: 14px; }
+  }
+
+  /* hide outline focus on click but keep for keyboard */
+  button:focus { outline: none; }
+  button:focus-visible { outline: 2px solid currentColor; outline-offset: -6px; }
+
+  /* ============================================================
+     CENTERED LOGO OVERLAY — appears when pointer is on the page,
+     `difference` blend with whatever sits below.
+     ============================================================ */
+  .cursor-logo {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: 92vw;
+    height: 88vh;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 260ms ease-out;
+    mix-blend-mode: difference;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cursor-logo.is-visible { opacity: 1; }
+  .cursor-logo svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    fill: #ffffff;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .cursor-logo { display: none; }
+  }
+
+</style>
+</head>
+<body>
+
+<main class="folder" id="folder" data-mood="cream">
+
+  <!-- cursor-following logo overlay (difference blend) -->
+  <div class="cursor-logo" id="cursorLogo" aria-hidden="true">
+    <svg viewBox="0 0 1822.78 871.43" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" id="cursorLogoSvg">
+  <g id="Camada_1-2" data-name="Camada 1">
+    <g>
+      <path d="M501.74,292.01l22.47-22.65,21.37-21.8c6.58-6.71,12.12-13.82,15.91-22.5l13.98-32.07,6.71-10.53c3.59-11.28,9.83-20.7,19.1-27.87,3.41-8.8,9.23-15.39,17.01-20.5,9-5.4,18.61-9.13,29.21-11.03,11.87-2.12,24.24,4.75,27.73,16.12,3.02,9.88-2.23,17.57-7.83,24.98-22.97,30.4-50.26,56.54-83.56,75.46-3.19,1.81-5.03,4.34-4.62,8.17,11.96,1.15,21.4,6.62,27.99,16.86,17.23-4.63,34.38-8.22,49.78-17.06l49.42-28.36c15.17-8.7,14.49-37.94,35.31-35.18,4.25.56,10.17,1.62,12.22,6.44,1.06,2.5-3.03,5.75-4.32,7.62-5.32,7.69-9.92,14.64-16.39,21.16l-23.96,82.98c22.77-11.02,44.03-22.68,65.85-35.24,12.17-7.01,24.7-13.04,34.61-23.03l41.54-41.86c16.24-16.36,29.49-34.26,43.54-52.39l17.24-22.23c3.99-5.15,17.92-1.99,22.84,5.69,1.24,1.94-.05,6.96-1.01,9.49l-35.12,92.8,29.05-37.48c10.14-13.08,20.3-25.37,32.95-36.09,19.62-16.61,43.95-28.02,67.95-16.14,10.1,5,15.21,16.22,11.1,27.28l-14.75,39.73c-4.62,12.45-12.84,22.68-19.71,33.94l-20.49,33.6,9.63-7.04,26.22-26.5,18.2-18.32c19.68-17.53,36.35-36.99,49.5-59.97l17.75,3.23c1.75.32,4.4,3.01,5.1,4.44.69,1.43-.03,4.7-1.11,6.51-13.19,22.13-23.61,44.7-30.76,70.37.21,1.09,1,4.47,4.03,6.76,3.6,2.72,8.89,2.79,13.31.13,0,0,65.38-48.91,95.64-76.46l30.73-27.96,18.77-13.82c4.04-2.98,10.59-3.29,15.55-1.88,5.07,1.44,10.9,7.28,11.04,12.86l-18.86,69.22,45.92-24.65c18.62-11.29,35.17-24.27,50.9-39.15l17.29-16.37c8.09-7.66,14.06-16.68,18.26-26.93l12.23-29.86,13.52-35.77c5.33.31,10.3.48,15.44,2.82,2.65,1.2,3.7,7.43,3.53,10.56-1.22,22.91-11.43,44.91-22.97,64.58-8.98,15.31-15.53,30.76-21.48,47.55l-15.81,44.6c-1.35,3.8-2.68,9.19-2.37,12.85l.22,2.59c.03.32.66.46.84.17l1.01-1.67c15.03-24.88,35.75-44.91,60.12-60.63,9.06-5.85,18.24-9.61,29.29-8.72,12.73,1.02,24.2,10.37,25.56,23.48.98,9.45-1.77,18.88-6.4,27.03l-17.36,30.62-33.46,47.94c-.18.26-1.22,1.27-.95,1.41l1.99,1.01,4.12,2.08,65.41-53.62c5.94-4.87,9.4-10.85,12.36-17.6,4.3-9.81,9.83-19.07,17.38-26.69l27.7-27.97c2.83-2.86,5.51-6.85,9.99-7.23,17.22-1.46,39.13,6.75,37.5,23.81-5.44,8.18-12.88,14.87-20.5,20.99l-58.55,47.03c-8.71,14.84-7.52,42.87,6.36,49.71,5.06,2.5,12.44,4.34,17.69,2.21l26.04-10.55c11.68-4.73,22.33-10.25,33.24-16.73,2.05-1.22,2.67-3.69,2.34-6l-.36-2.49c-1.17-8,1.24-17.92,3.56-26.02l.49-1.71.46-1.36c3.42-10.06,8.18-19.21,14.16-27.97l.83-1.21c11.08-16.23,25.2-29.68,40.88-41.49,6.04-4.55,11.78-8.16,19.54-6.03l3.44-1.98c.69.17,1.63.41.94.23l-.6,2.87c-.12.57,1.02,1.37,1.7,1.69l16.35,7.76c.33.16,1.72.95,1.88.64l1.07-2.14,33.36-72.43L1799.95,1.38c9.56-4.29,21.48,1.89,22.83,12.35l-29.83,60.3c-20.36,41.14-37.79,82.6-52.16,126.21-9.95,30.21-9.86,62.38,3.77,91.26,4.06,8.6,20.97,2.54,20.31,13.12-.33,5.36-3.91,8.42-9.32,8.31-18.75-.39-33.14-18-38.55-36.28-3.95-13.33-5.7-26.71-7.03-40.65l-.46-2.15c-.07-.31-.5-.35-.67-.08l-1.32,2.15-29.99,48.78c-8.36,13.6-22.76,22.33-38.02,26.07-10.17,2.49-19.61-2.63-25.42-11.45l-43.17,23.34c-25.58,13.83-57.08,2.17-68.56-24.03l-9.15-20.89-1.18-.61-19.38,16.67c-11.28,9.7-22.94,17.99-35.96,25.53-5.04,2.92-21.52-3.07-27.97-7.1-8.95-5.59-11.88-20.73-5.51-29.21l22.7-30.25c15.29-20.38,31.63-45.14,36.82-69.83l-.31-1.52c-7.37-2.38-13.73-.39-19.88,3.62-20.26,13.23-38,28.99-51.14,49.53-17.92,28.01-31.85,62.19-35.1,95.36-5.31,3.61-13.04,1.45-16.81-3.77-4.7-6.5-6.51-14.33-5.41-22.42,3.5-25.77-.35-51.45,3.61-65.31l7.89-27.62,10.1-28.52c.38-.83.15-1.94-.45-1.62l-33.42,24.68c-16.05,11.85-33.09,21.01-51.16,29.42l-23.64,12.83c-27.92,15.16-30.95,47.77-66.23,72.8-12.1,8.58-30.18,16.23-40.74,7.6-5.59-4.56-8.27-11.76-9.5-18.61l15.36-10.51,65.48-52.41,17.98-36.26c.11-5.66.61-11.97,3.01-17.53,5-11.59,5.98-22.68,4.03-20.78l-1.82,1.78-30.63,29.02c-30.5,28.9-62.07,55.66-96.58,79.63-7.61,5.28-17.04,9.03-26.17,7.57-6.44-1.03-12.49-5.38-17.51-9.38-6.44-5.14-11.62-13.64-11.06-22.11l3.28-16.89-33.3,33.95-28.65,28.8c-7.57,5.79-15.65,9.46-25.08,6.75-8.8-6.36-13.84-16.83-14.03-27.6-.13-7.54,3.83-12.29,7.96-17.84l24.55-32.98c13.34-17.92,30.34-53.61,29.22-76.68-26.82,3.32-44.49,19.2-60.43,39.81l-52.67,68.07c-9.84,12.72-18.54,25.36-25.55,39.74l-18.01,37.01c-2.42,1.18-7.5,2.56-10.18,1.53-9.49-3.62-12.23-13.43-10.77-22.72,1.59-10.19,6.98-18.12,11.02-27.59l36.09-84.56c2.42-5.66,3.78-11,4.27-17.36l-39.74,44.16c-13.54,15.05-28.11,28.15-44.85,39.51l-45.39,30.81c-5.12.49-10.13-3.49-12.56-7.5l-30.29,24.67c-4.39,3.57-11.68,5.72-16.85,3.59-6.47-2.66-11.17-8.44-14.51-14.36-1.76-3.12-1.09-7.41.27-10.64,7.23-17.25,12.55-34.42,17.42-52.51.15-.56.41-2.88-.07-2.65l-2.4,1.14-37.99,19.37-59.95,22.54c-5.64,35.59-14.82,71.18-34.23,101.14-4.79,7.39-10.98,13.16-16.76,19.72l-31.01,35.15c-7.72,8.76-18.89,11.39-29.06,4.67-12.41-8.2-15.21-16.81-9.49-30.78l24.46-59.86,31.52-73.99c.02-.52.03-1.75-.21-1.6l-2.11,1.3c-4.99,3.07-9.38,8-13.07,12.63l-15.38,19.28c-24.6,20.76-44.6,33.38-50.14,32.54-3.45-.53-6.07-2.24-6.07-2.24-5.52-3.71-7.19-9.05-5.17-15.93l15.23-51.9c3.09-10.54,6.54-20.77,12.09-30.23l33.25-56.71c5.2-8.88,9.12-17.47,11.5-28.33-9.8,5.8-20.04,11.15-27.28,20.17l-64.41,80.26c-7.26,9.04-12.74,18.45-19.03,28.11l-30.53,46.88c-5.75,3.06-13.91-1.73-18.2-6.66-11.25-12.91-7.82-30.6-1.24-46.1l14.28-33.63c4.52-10.65,9.23-20.6,13.94-31.08l11.62-25.88.58-1.36.58-1.35.5-2.36c.87-.24-.13.04-1.49.42-26.64,20.27-49.38,44.35-67.85,72.13l-22.28,33.51c-12.32,18.53-44.78,57.29-68.13,54.61l72.88-99.65c14.31-19.56,29.33-36.35,47.8-52.66l55.75-49.24c7.48-6.61,16-10.04,26.25-5.28,3.6,1.67,2.56,7.5.73,11.2l-47.84,96.82c-6.94,14.04-12.13,27.77-15.58,43.68l33.8-47.39c14.56-20.41,30.12-39.02,46.91-57.61,11.44-12.67,22.98-24.24,36.92-34.05,13.68-9.63,32.06-17.37,45.3-7.01,2,9.71-1.12,19.87-5.07,29.01-17.66,40.81-56.14,72.72-60.84,120.59-3.04,9.39-3.57,14.69-1.58,15.91,3.02,1.86,11.87-5.73,26.54-22.78ZM591.52,213.3c20.73-15.57,37.74-33.55,53.23-53.55,4.25-5.48,7.86-10.86,6.94-18.74-28.18,15.7-50.91,40.55-60.16,72.29ZM1649.72,242.88l26.75-32.13c6.26-7.51,12.25-14.84,15.29-24.92-11.17,5.32-21.53,11.49-29.18,20.51l-20.24,23.89c-5.09,8.78-9.36,17.29-12.56,27.28,8.08-3.16,14.36-7.93,19.94-14.63ZM1668.49,249.29l-39.72,39.68c13.61,2.2,35.47-25.57,39.72-39.68ZM540.09,388.37c12.13-14.59,19.46-31.15,24.43-48.87,2.52-9,7.68-16.05,15.18-21.37-1.93-2.54-5.04-6.54-4.73-8.81.94-6.69,6.44-9.67,11.14-14.57l-22.12-12.99-14.48,35.09-35.75,87.72c-2.74,6.73-4.8,12.52-6.35,19.97,5.62-4.25,9.84-8.68,14.2-13.93l18.48-22.23Z"></path>
+      <path d="M967.62,724.45l-24.6-.1c-8.91-.54-16.99-3.1-23.42-9.31l-41.81-6c-12.07,2.11-23.22,5.43-34.71,9.47l-34.72,13.33c-9.22,3.54-18.57,6.26-28.37,7.06-9.4.76-17.6-4.91-18.52-14.47l-3.32-34.44-58.73-11c-23.19,14.13-26.95,44.06-58.18,32.01l-2.47-30.25-52.58,23.65c-21.49,9.67-42.2,19.13-64.55,26.48-17.28,5.69-47.63,13.16-60.18,2.81-7.17-5.91-13.81-16.85-12.49-26.38l5.53-39.93-28.86,6.17c-8.47,1.81-17.22,4.09-24.78,8.76l-94.13,58.14-15.29,1.54c-1.63-5.42-2.08-11.54.26-16.46l27.25-21.71c10.64-8.48,18.63-19.62,24.75-31.79l20.34-40.43c-10.81-4.25-21.99-6.79-33.1-4.87-56.5,46.44-118.7,84.15-185.76,113.04l-9.47-8.27c2.57-6.04,6.18-8.88,11.36-11.49,12.59-6.36,25.92-10.37,38.15-17.66l94.85-56.48c11.23-6.69,19.48-16.02,28.99-24.78-13.07-3.86-24.07-9.53-36.99-12.49-52.16-11.96-103.02-26.19-153.05-45.46-16.41-6.32-32.55-9.78-50.04-10.76l-11.76-1.24c-4.57-1.38-7.66-4.89-6.57-9.81,13.21-12.04,30.82-9.68,47.94-4.78l104.65,36.36,132.37,31.25,82.3-60.2c3.45-2.52,5.45-7.09,8.14-10.21,1.42-1.43,3.33-2.45,5.23-2.96,5.02,3.95,8.41,9.59,8.04,16.2l-42.24,66.81,92.39,11.71,63.42-41.71c6.01-3.95,14.38-7.19,21.55-6.63,8.8.68,14.8,8.99,17.92,16.93l-35.73,41.15,60.85,9.79c10.95,1.76,21.65,1.58,32.77.58l81.83-153.98,9.83-11.59c4.16-1.14,9.76,1.84,12.81,5.14l-5.86,20.2-20.07,42.32-55.44,103.65c7.62,3.05,17.35,6.6,25.33,3.22l83.67-50.52,81.12-35.89c5.78.18,12.65.48,16.43,5.7,3.25,4.48,4.42,15.28.23,19.49l-17.73,17.85-25.78,25.04-38.37,38.83,64.22,10.54c17.23,2.83,34.88-4.1,49.65-12.02,6.37-3.42,10.03-8.59,13.81-14.24,27.74-41.43,61.54-76.39,115.39-74.87l4.45,41.8,21.61-13.6,34.33-2.07c8.9-.54,18.04-1.55,26.1-5.68l77.38-39.59c10.72-3.01,22.11,5.61,27.91,14.06l-14.74,20.63,55.13,9.71c17.72,3.12,35.3.9,53.09-1.79l62.05-12.7,28.93-44.93c15.73-24.43,50.41-55.79,79.87-59,12.17-1.33,22.36,4.58,26.86,15.64,4.46,10.96,4.85,22.7,2.27,34.24-3.2,14.31-11.97,24.92-24.01,32.86l-25.36,16.73c-6.67,4.4-13.9,6.93-21.63,9.13l-46.14,13.12c-15.89,20.6-14.71,50.02-1.98,72.19,2.49,4.34,8.7,7.11,13.43,8.31l20.07,5.11c2.95.75,7.14,3.72,5.52,7.23-6.64,14.41-31.93,13.95-48.24.77-26.19-21.16-21.01-58.52-15.99-91.24l-118.06,21.35c-25.38,57.87-77.22,82.01-131.01,93.98l2.93,1.2,1.54.36,74.3,17.75,121.27,25.48,143.76,32.56,1.85.58,245.69,59.95c2.19.47,2.76,1.14,1.01,1.47-19.76,2.41-38.25,1.48-57.41-2.7l-294.28-64.18-202.7-42.04-97.62-20.46c-35.15-7.37-69.57-12.75-105.86-16.29ZM1502,549.56c6.2-8.63,9.2-18.75,6.81-29.08-19.64-7.22-39.18,2.6-52.03,18.33l-39.54,48.42c31.18,3.04,67.36-13.44,84.76-37.68ZM374.68,610.21l12.24-11.38-4.37-5.19-22.04,13.99,14.17,2.57ZM774.33,673.86l72.98-77.78c-20.8,4.6-38.7,13.55-56.78,23.92l-66.15,40.88,49.95,12.98ZM1018.65,619.92l6.03-12.44c-3.64-.08-6.49,0-9.58,1.04-19.37,6.54-43.69,20.35-51.69,38.5l55.24-27.09ZM1210.81,676.16c10.36-5.45,19.18-12.16,24.74-21.88l12-20.99-38.58-5.96c-9.73-1.5-15.43-10.25-16.64-20.25-23.19,5.62-44.83,15.14-63.37,29.7-10.07,7.9-17.58,17.31-20.27,29.77-4.01,18.59,7.07,36.41,25.84,39.99,9.09,1.74,18.12.24,26.36-4.1l49.92-26.28ZM1113.8,726.43l-12.92-13.98c-19.25-26.1-16.58-51.45-.16-79.7-19.19,1.29-39.96,5.44-53.03,19.94l-48.95,54.34,76.47,13.8,38.58,5.6ZM441.64,639.12l-53.46-5.34c-12.52,5.42-21.82,26.14-20.4,40.56l83.1-28.86c-1.97-2.01-5.67-6.01-9.24-6.36ZM983.99,690.07l36.82-28.03c4.21-3.2,7.41-10.83,6.98-15.93-.35-4.08-3.72-7.66-5.79-10.79l-71.27,38.35c-6.45,3.47-12.86,10.69-13.16,17.88,8.86,15.67,32,9.5,46.42-1.47ZM514.03,712.23l106.38-44.63c-31.29-9.54-62.63-14.14-94.71-16.22l-22.42.75c-27.42,8.82-37.06,36.65-32.93,64.09,14.89,2.99,28.91,1.41,43.67-4ZM823.41,702.44l-28.44-6.69c-5.95.49-11.6,2.66-15.7,7.03-.31,6.54,1.94,12.66,7.16,16.78l36.98-17.12Z"></path>
+      <path d="M113.84,238.23l-51.15,57c-12.24,13.63-26.76,23.75-43.59,30.95l-19.1-12.14,13.41-7.51c13.73-11.48,25.42-23.4,37.65-36.38l69.74-74.05,30.93-35.56,22.72-4.21c2.14-.4,5.92.77,7.28,1.96,1.51,1.33,3.52,5.96,2.38,7.65-5.25,7.81-10.29,14.82-14.84,23.01l-36.95,66.51c-9.29,16.72-22.73,59.54-14.55,73.09,3.68,6.09,23.13-4.96,33-16.37l60.41-69.81,29.14-31.41,20.58-23.58,22.81-30.08c7.75-3.26,17.08-3.51,25.52-2.44,1.68,4.32,1.51,9.22-1.07,12.68l-24.52,33.02c-18.34,24.7-35.66,68.12-47.36,98.34-5.51,14.23-8.39,28.5-9.88,43.77l9.68,5.97c-.48,3.11-2.51,6.8-4.99,8.84-17.67-2.54-30.78-13.49-28.07-31.17,1.02-6.63,4.32-12.31,6.31-18.66l5.52-17.59,14.39-33.16c-15.74,16.75-29.19,33.7-43.66,50.86-16.03,19.01-47.08,46.76-70.53,35.85-17.02-7.92-25.67-24.4-23.77-43.04,1.5-14.76,6.83-28.39,13.67-41.67,3.54-6.59,7.4-12.26,8.88-20.67Z"></path>
+      <path d="M770.25,158.31c.58,7.05-10.19,9.27-15.19,7.18-8.89-3.71-15.14-10.08-17.76-19.24l19.04-5.7c5.27,4,13.28,10.09,13.91,17.76Z"></path>
+      <path d="M1129.73,126.14c-6.05-3.1-8.55-10.18-8.68-16.5,2-1.82,4.96-3.21,7.47-3.88l11.21,15.54c-1.32,3.16-5.94,6.93-10,4.85Z"></path>
+    </g>
+  </g>
+</svg>
+  </div>
+
+  <aside class="holes" aria-hidden="true">
+    <span class="hole"></span><span class="hole"></span><span class="hole"></span>
+    <span class="hole"></span><span class="hole"></span><span class="hole"></span>
+    <span class="hole"></span><span class="hole"></span>
+  </aside>
+
+  <!-- ========================================================
+       TAB · SCHOOL  (02/04/2026)  dark · bright cyan
+       ======================================================== -->
+  <section class="tab is-open" data-id="school" data-mood="dark">
+    <button class="spine" data-target="school" aria-label="Open School">
+      <span class="date">02/04/2026</span>
+      <span class="name">SCHOOL</span>
+    </button>
+    <div class="panel panel-school">
+      <div class="panel-inner">
+        <p class="school-text">The school we know tends toward functional specialization, separation between life and work, production and leisure. But <em>scholé</em>, the Greek root of school, meant not just discussion but also <em>ócio</em>: a slow, idle time where an interesting conversation could happen. proposes the opposite of know-how. <span class="accent">It proposes no-how.</span> an absence of fixed method, a non-prescriptive <em>não-como</em>. The “how” is not known in advance. It changes role, function, meaning. It might hold several at once. It is performative. It cannot be regulated, institutionalized, quantified, or capitalized. Why have utopian educational models—Bauhaus, Black Mountain College, Atelier Livre—never become permanent? Perhaps because the moment something is instituted, it loses freshness, currency, decays, and dies. The actual, the urgent, is always provisional. <em>Espaços-quaisquer</em>. This school is not an institution. It is a foundation for action: a provisional exercise, not efficient, not productive, in transition, for nothing. A place where education is not preparation for life but life already happening—through art, through performance, through the creative use of leisure. We don’t finish students. We hand them a living network and permission to remain unfinished. <span class="accent">The Unfinished School is for nothing. And therefore, for everything.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       TAB · RULES  (23/03/2026)  cream · deep blue
+       ======================================================== -->
+  <section class="tab" data-id="rules" data-mood="cream">
+    <button class="spine" data-target="rules" aria-label="Open Rules">
+      <span class="date">23/03/2026</span>
+      <span class="name">RULES</span>
+    </button>
+    <div class="panel panel-rules">
+      <div class="panel-inner">
+        <div class="rules-list">
+          <article class="rule">
+            <div class="rule-body">
+              <h2>You have real power</h2>
+              <p class="body">This school is not run by adults on behalf of students. Every student has an equal voice in decisions that affect the school — including rules, budget, use of spaces, and the direction of projects. Decisions are made together in weekly open meetings, where every voice counts the same regardless of age or experience. This is not symbolic participation. If you propose something and the group agrees, it happens. If you disagree with a rule, you can challenge it. Power here is real, and so is the responsibility that comes with it.</p>
+            </div>
+            <div class="rule-label">RULE 1#</div>
+          </article>
+
+          <article class="rule">
+            <div class="rule-body">
+              <h2>Work on real projects</h2>
+              <p class="body">Most of your time here is spent doing actual work — not preparing to do work, not practising for future work, but making things that exist in the world and affect real people. Your projects have real users, real constraints, and real consequences. They can succeed or fail. People outside the school will use, judge, or be affected by what you make. Passive learning — sitting, listening, absorbing — is kept to a minimum. The primary mode here is doing.</p>
+            </div>
+            <div class="rule-label">RULE 2#</div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       TAB · MAP  (22/01/2026)  dark · bright cyan
+       ======================================================== -->
+  <section class="tab" data-id="map" data-mood="dark">
+    <button class="spine" data-target="map" aria-label="Open Map">
+      <span class="date">22/01/2026</span>
+      <span class="name">MAP</span>
+    </button>
+    <div class="panel panel-map">
+      <div class="panel-inner">
+        <div class="floorplan">
+          <div class="room room--seasonal">
+            <div class="label">
+              north wing
+              <span class="sub">(changes seasonally)</span>
+            </div>
+          </div>
+
+          <div class="room room--stuck">
+            <div class="label">the room where<br>you get stuck</div>
+          </div>
+          <div class="room room--decided">
+            <div class="label">the room where<br>nothing is decided yet</div>
+          </div>
+          <div class="room room--wrong">
+            <div class="label">the room for<br>getting it wrong</div>
+          </div>
+
+          <div class="room room--corridor">
+            <div class="label">the corridor of shared mistakes</div>
+          </div>
+          <div class="room room--crossed">
+            <div class="label">the room where you decided<br>you have crossed a threshold</div>
+          </div>
+
+          <div class="threshold-mark"><span>threshold</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       TAB · FOLDER  (12/01/2026)  cream · deep blue  — landing
+       ======================================================== -->
+  <section class="tab" data-id="folder" data-mood="cream">
+    <button class="spine" data-target="folder" aria-label="Open Folder">
+      <span class="date">12/01/2026</span>
+      <span class="name">FOLDER</span>
+    </button>
+    <div class="panel panel-folder">
+      <div class="panel-inner">
+        <div class="folder-head">
+          <h1>Unfinished<br>school.</h1>
+          <p class="lede">A folder pulled out of a drawer — four tabs, no fixed order. The school being built while it is being attended.</p>
+          <dl class="folder-meta">
+            <dt>format</dt><dd>An open folder of recent thinking. Each tab is a sheet last touched on the date shown. Pull a tab from the right to read.</dd>
+            <dt>contents</dt><dd>School · Rules · Map · Folder.</dd>
+            <dt>status</dt><dd>Unfinished. Rules added as needed; rooms renamed as we learn what they're for.</dd>
+          </dl>
+        </div>
+
+        <div class="folder-index">
+          <div class="head"><div>date</div><div>tab</div><div>note</div><div></div></div>
+          <button class="row" data-target="school">
+            <span class="d">02 / 04 / 2026</span>
+            <span class="n">SCHOOL</span>
+            <span class="t">scholé. no-how.</span>
+            <span class="arrow">→</span>
+          </button>
+          <button class="row" data-target="rules">
+            <span class="d">23 / 03 / 2026</span>
+            <span class="n">RULES</span>
+            <span class="t">real power. real projects.</span>
+            <span class="arrow">→</span>
+          </button>
+          <button class="row" data-target="map">
+            <span class="d">22 / 01 / 2026</span>
+            <span class="n">MAP</span>
+            <span class="t">rooms for getting it wrong.</span>
+            <span class="arrow">→</span>
+          </button>
+        </div>
+
+        <div class="folder-foot">
+          <div class="colophon">Set in Lazzer-TRIAL (Medium, SemiBold, Medium Italic). Built as a folder, not a curriculum.</div>
+          <div class="pull-tab">Pull a tab.<br><strong>→ right side</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const folder = document.getElementById('folder');
+  const tabs = [...folder.querySelectorAll('.tab')];
+
+  const MOODS = {
+    dark:  { bg: '#2e2e30', fg: '#1ea5e8' },
+    cream: { bg: '#f3eed8', fg: '#1d3eff' }
+  };
+
+  function openTab(id) {
+    let foundOpen = false;
+    let openMood = 'cream';
+
+    tabs.forEach(t => {
+      const isOpen = t.dataset.id === id;
+      t.classList.toggle('is-open', isOpen);
+      if (isOpen) {
+        t.dataset.side = 'open';
+        openMood = t.dataset.mood;
+        foundOpen = true;
+      } else if (!foundOpen) {
+        t.dataset.side = 'left';
+      } else {
+        t.dataset.side = 'right';
+      }
+    });
+
+    folder.style.setProperty('--open-bg', MOODS[openMood].bg);
+    folder.style.setProperty('--open-fg', MOODS[openMood].fg);
+    folder.dataset.mood = openMood;
+
+    if (history.replaceState) {
+      history.replaceState(null, '', '#' + id);
+    }
+  }
+
+  // wire up spines + index rows
+  document.querySelectorAll('[data-target]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      openTab(el.dataset.target);
+    });
+  });
+
+  // keyboard arrows step through tabs
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const cur = tabs.findIndex(t => t.classList.contains('is-open'));
+    if (cur < 0) return;
+    const next = e.key === 'ArrowRight'
+      ? Math.min(cur + 1, tabs.length - 1)
+      : Math.max(cur - 1, 0);
+    openTab(tabs[next].dataset.id);
+  });
+
+  // initial state — honour hash if it matches a tab, else open SCHOOL by default
+  const initial = (location.hash || '').replace('#', '');
+  const found = tabs.find(t => t.dataset.id === initial);
+  openTab(found ? found.dataset.id : 'school');
+
+  // ----------------------------------------------------------------
+  // CENTERED LOGO OVERLAY  (difference blend)
+  // Appears when pointer enters the page, hides when it leaves.
+  // No follow — logo stays statically centered.
+  // ----------------------------------------------------------------
+  (() => {
+    const wrap = document.getElementById('cursorLogo');
+    if (!wrap) return;
+    function show() { wrap.classList.add('is-visible'); }
+    function hide() { wrap.classList.remove('is-visible'); }
+    window.addEventListener('pointerenter', show, { passive: true });
+    window.addEventListener('pointermove',  show, { passive: true });
+    window.addEventListener('pointerleave', hide);
+    document.addEventListener('mouseleave', hide);
+    document.documentElement.addEventListener('mouseleave', hide);
+  })();
+</script>
+
+</body>
+</html>
