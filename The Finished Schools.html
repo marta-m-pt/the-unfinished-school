@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Finished Schools — Unfinished School</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+  @font-face {
+    font-family: "Lazzer";
+    src: url("fonts/Lazzer-TRIAL-Medium.woff2") format("woff2"),
+         url("fonts/Lazzer-TRIAL-Medium.woff") format("woff");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Lazzer";
+    src: url("fonts/Lazzer-TRIAL-Semibold.woff2") format("woff2"),
+         url("fonts/Lazzer-TRIAL-Semibold.woff") format("woff");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Lazzer";
+    src: url("fonts/Lazzer-TRIAL-MediumItalic.woff2") format("woff2"),
+         url("fonts/Lazzer-TRIAL-MediumItalic.woff") format("woff");
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+  }
+
+  :root {
+    --cream: #f3eed8;
+    --deep: #1d3eff;
+    --dark: #2e2e30;
+    --font: "Lazzer", "Public Sans", -apple-system, system-ui, sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    font-family: var(--font);
+    font-weight: 500;
+    color: var(--deep);
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 10px clamp(20px, 3vw, 48px);
+    border-bottom: 1px solid var(--deep);
+    flex: 0 0 auto;
+  }
+
+  .topbar .back {
+    color: inherit;
+    text-decoration: none;
+    font-style: italic;
+    font-size: 13px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 200ms ease;
+  }
+
+  .topbar .back:hover {
+    border-bottom-color: var(--deep);
+  }
+
+  .topbar .meta {
+    font-size: 10px;
+    font-style: italic;
+    opacity: 0.7;
+    text-align: right;
+    line-height: 1.3;
+  }
+
+  .topbar .meta .label {
+    display: block;
+    font-style: normal;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 9px;
+    opacity: 0.6;
+  }
+
+  .title {
+    padding: 12px clamp(20px, 3vw, 48px) 10px;
+    border-bottom: 1px solid var(--deep);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    align-items: end;
+    flex: 0 0 auto;
+  }
+
+  .title h1 {
+    font-size: clamp(22px, 2.8vw, 36px);
+    line-height: 0.95;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+
+  .title .lede {
+    max-width: 340px;
+    font-size: 10px;
+    line-height: 1.35;
+    font-weight: 500;
+    text-align: right;
+    margin: 0;
+    opacity: 0.75;
+  }
+
+  .stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    background: #e0dcd0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 20px 8px;
+    overflow: hidden;
+  }
+
+  .book-wrap {
+    flex: 1 1 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  #pdf-viewer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #pdf-canvas-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .pdf-page {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .pdf-page canvas {
+    display: block;
+    image-rendering: high-quality;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 8px 20px 4px;
+    color: var(--deep);
+    font-size: 13px;
+    flex: 0 0 auto;
+    position: relative;
+    background: var(--cream);
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .controls button {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--deep);
+    color: var(--deep);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition:
+      background 180ms ease,
+      color 180ms ease,
+      opacity 180ms ease;
+    letter-spacing: 0.04em;
+  }
+
+  .controls button:hover:not(:disabled) {
+    background: var(--deep);
+    color: var(--cream);
+  }
+
+  .controls button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .controls .pager {
+    font-style: italic;
+    min-width: 90px;
+    text-align: center;
+    opacity: 0.8;
+    font-size: 12px;
+  }
+
+  .controls .actions {
+    position: absolute;
+    right: 20px;
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+  }
+
+  .controls .actions a {
+    color: var(--deep);
+    text-decoration: none;
+    border-bottom: 1px solid var(--deep);
+    padding-bottom: 1px;
+    font-style: italic;
+  }
+
+  .controls .actions a:hover {
+    opacity: 0.7;
+  }
+
+  .hint {
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(45, 45, 48, 0.45);
+    padding-bottom: 5px;
+    background: var(--cream);
+  }
+
+  .loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--deep);
+    font-style: italic;
+    background: #e0dcd0;
+    z-index: 10;
+    transition: opacity 400ms ease;
+  }
+
+  .loading.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (max-width: 720px) {
+    .topbar {
+      padding: 8px 12px;
+    }
+
+    .title {
+      padding: 10px 12px 8px;
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+
+    .title .lede {
+      text-align: left;
+      max-width: none;
+      font-size: 9px;
+    }
+
+    .stage {
+      padding: 12px 8px 8px;
+    }
+
+    .controls {
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 6px 12px 3px;
+    }
+
+    .controls .actions {
+      position: static;
+      margin-left: auto;
+    }
+
+    .controls button {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    .controls .pager {
+      min-width: 70px;
+      font-size: 11px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <a class="back" href="index.html">
+    ← back to folder
+  </a>
+
+  <div class="meta">
+    <span class="label">Tab</span>
+    The Finished Schools · 20/05/2026
+  </div>
+</header>
+
+<section class="title">
+  <h1>The Finished Schools.</h1>
+
+  <p class="lede">
+    A reading on the systems we are coming from.
+  </p>
+</section>
+
+<section class="stage">
+
+  <div class="book-wrap">
+    <div id="pdf-viewer">
+      <div id="pdf-canvas-container"></div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    loading PDF…
+  </div>
+
+</section>
+
+<nav class="controls">
+
+  <button id="prev" type="button">
+    ← Previous
+  </button>
+
+  <span class="pager">
+    <span id="curPage">—</span>
+    /
+    <span id="totalPages">—</span>
+  </span>
+
+  <button id="next" type="button">
+    Next →
+  </button>
+
+  <span class="actions">
+    <a href="The Finished Schools.pdf" target="_blank" rel="noopener">
+      Open PDF ↗
+    </a>
+
+    <a href="The Finished Schools.pdf" download>
+      Download
+    </a>
+  </span>
+
+</nav>
+
+<div class="hint">
+  ← → keys to turn pages
+</div>
+
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<script>
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+  const url = 'The Finished Schools.pdf';
+
+  const container = document.getElementById('pdf-canvas-container');
+  const loadingEl = document.getElementById('loading');
+
+  const curEl = document.getElementById('curPage');
+  const totalEl = document.getElementById('totalPages');
+
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+
+  let pdfDoc = null;
+  let currentPage = 1;
+  let totalPages = 0;
+  let currentCanvas = null;
+
+  async function renderPage(pageNum) {
+
+    if (!pdfDoc) return;
+
+    const page = await pdfDoc.getPage(pageNum);
+
+    const viewer = document.getElementById('pdf-viewer');
+    const rect = viewer.getBoundingClientRect();
+
+    const containerWidth = rect.width - 40;
+    const containerHeight = rect.height - 40;
+
+    // Base viewport
+    const baseViewport = page.getViewport({ scale: 1 });
+
+    // Fit scale
+    const fitScale = Math.min(
+      containerWidth / baseViewport.width,
+      containerHeight / baseViewport.height
+    ) * 0.95;
+
+    // Retina support
+    const pixelRatio = window.devicePixelRatio || 1;
+
+    // High quality internal render scale
+    const renderScale = fitScale * pixelRatio;
+
+    const viewport = page.getViewport({
+      scale: renderScale
+    });
+
+    let canvas = currentCanvas;
+
+    if (!canvas) {
+
+      canvas = document.createElement('canvas');
+      currentCanvas = canvas;
+
+      container.innerHTML = '';
+
+      const pageDiv = document.createElement('div');
+      pageDiv.className = 'pdf-page';
+
+      pageDiv.appendChild(canvas);
+      container.appendChild(pageDiv);
+    }
+
+    const context = canvas.getContext('2d');
+
+    // Internal render resolution
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    // CSS display size
+    canvas.style.width = `${viewport.width / pixelRatio}px`;
+    canvas.style.height = `${viewport.height / pixelRatio}px`;
+
+    // Reset transforms
+    context.setTransform(1, 0, 0, 1, 0, 0);
+
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport
+    };
+
+    await page.render(renderContext).promise;
+
+    curEl.textContent = pageNum;
+
+    currentPage = pageNum;
+
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+  }
+
+  // Resize rerender
+  let resizeTimeout;
+
+  window.addEventListener('resize', () => {
+
+    clearTimeout(resizeTimeout);
+
+    resizeTimeout = setTimeout(() => {
+
+      if (pdfDoc && currentPage) {
+        renderPage(currentPage);
+      }
+
+    }, 150);
+
+  });
+
+  // Load PDF
+  pdfjsLib.getDocument(url).promise.then((pdf) => {
+
+    pdfDoc = pdf;
+
+    totalPages = pdf.numPages;
+    totalEl.textContent = totalPages;
+
+    loadingEl.classList.add('hidden');
+
+    setTimeout(() => {
+      loadingEl.remove();
+    }, 400);
+
+    renderPage(1);
+
+  }).catch((err) => {
+
+    console.error(err);
+
+    loadingEl.innerHTML = `
+      Could not load PDF.
+      <a
+        href="The Finished Schools.pdf"
+        target="_blank"
+        style="color:#1d3eff;"
+      >
+        Open directly ↗
+      </a>
+    `;
+  });
+
+  // Navigation
+  prevBtn.addEventListener('click', () => {
+
+    if (currentPage > 1) {
+      renderPage(currentPage - 1);
+    }
+
+  });
+
+  nextBtn.addEventListener('click', () => {
+
+    if (currentPage < totalPages) {
+      renderPage(currentPage + 1);
+    }
+
+  });
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+
+    if (
+      e.target &&
+      /input|textarea|select/i.test(e.target.tagName)
+    ) return;
+
+    if (e.key === 'ArrowLeft' && currentPage > 1) {
+      renderPage(currentPage - 1);
+    }
+
+    if (e.key === 'ArrowRight' && currentPage < totalPages) {
+      renderPage(currentPage + 1);
+    }
+
+  });
+
+</script>
+
+</body>
+</html>
